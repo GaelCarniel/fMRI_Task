@@ -41,7 +41,9 @@ while trial<time:
     if 'escape' in sampled:
         break
     print(sampled);
-    
+    #Just to understand
+    win.flip();
+    core.wait(2);   
     trial += 1;
     print(f"\nTrial {trial}");
 

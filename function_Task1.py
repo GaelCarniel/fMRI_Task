@@ -127,8 +127,8 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
     p_left = visual.ImageStim(win=win,image=f"IMG/{image_P_left}", size=(400,400) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
     p_right= visual.ImageStim(win=win,image=f"IMG/{image_P_right}", size=(400,400) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
     
-    text_left = visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pl]][trial]]}", pos=(-0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
-    text_right= visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pr]][trial]]}", pos=(0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
+    text_left = visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pl]][trial]]}", bold= True, pos=(-0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
+    text_right= visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pr]][trial]]}", bold= True, pos=(0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
     
     box_lchoice = visual.Rect(win,width = 0.1*win.size[0],height = 0.08*win.size[1],fillColor="grey",lineColor = "darkgrey",lineWidth=5,pos=(-0.2*win.size[0],-0.2*win.size[1]));
     text_lchoice = visual.TextStim(win=win,text = "Select",height=0.05*win.size[1],pos=(-0.2*win.size[0],-0.2*win.size[1]));
@@ -215,7 +215,7 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
             text_nochoice.draw();
             win.flip();
             core.wait(0.15);
-            return "Stop"
+            return "stop"
 
 
 def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","Low","Low","High"]):
@@ -233,19 +233,28 @@ def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","L
     order = np.concatenate((np.array(high_conf).flat,np.array(low_conf).flat));#Flat ensure it is one dimensional thank you python for being so weird
 
     chosen = [];
-    
-    s = 0
+    print(player_list);
+    s = 0;
     while s<maxSample and len(order)>1:  #While we still can sample
-        if len(chosen) == 0:
-            chosen.append(sampling_player(win,order[0],order[1],table,ref_table,trial,conf_label=conf_label));
-            print(chosen);
         
-        if "stop" in chosen:
-            break 
-        #else .pop the sampled one display the other one in the row 
-        
-    
-    return 'escape'
+        new_sampled =sampling_player(win,order[0],order[1],table,ref_table,trial,conf_label=conf_label); #I decided not to randomize left right here I might be wrong
+        chosen.append(new_sampled);
+        print(chosen);
+        print(np.where(np.array(player_list)==new_sampled));
+        print(order);
+        selected_index = np.where(np.array(player_list)==new_sampled);
+        order = order[order!=selected_index[0]];  #Delete the indexes that correspond to the selected player 
+        print(order);
+
+        if 'escape' in chosen:
+            return 'escape'
+        elif 'stop' in chosen:
+            chosen.remove('stop');
+            print("Sampling stopped");
+            return chosen 
+        s+=1;
+
+    return chosen
 
 
 
