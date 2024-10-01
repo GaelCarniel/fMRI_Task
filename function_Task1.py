@@ -395,10 +395,6 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider):
 def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     '''Give feedback about the updated belief'''
     g_yes = angles[0]==angles[1]; #true state
-    print("g_yes",g_yes);
-    print("tick",ticks[len(ticks)//2]);
-    print("updt",updt < ticks[len(ticks)//2]);
-    print(updt);
     if updt < ticks[len(ticks)//2]: #Thinks it is false
         if g_yes:
             right=0;
