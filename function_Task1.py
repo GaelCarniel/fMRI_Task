@@ -6,12 +6,14 @@ def init(win, ticks=[0,1,2,3]):
     '''Instantiate the bigger objects so I do not have to do it in the middle of the experiment'''
     lbl= [''] * len(ticks);
     slider = visual.Slider(win, 
-        ticks=ticks,  # The range is from 0 to 4
+        ticks=ticks,  # The range is from 0 to 3
         labels=lbl,  # Empty labels for each tick
         granularity=1,  # Discrete steps
         style=['rating'],  # Style of the slider
         size=(0.6*win.size[0], 0.05*win.size[1]),  # Size of the slider
         pos=(0, 0));  # Position at the center
+    slider.marker.color = 'green';
+
         
     ### Read inputs
     game_schedule = pd.read_csv("Input/Game_Schedule.csv");
@@ -66,7 +68,6 @@ def gabor_task(win,angles,tstim,tvoid,slider,max_resp_time=5,sf = .05,size=400,c
     yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
     
     slider.markerPos = np.random.randint(0, len(ticks));
-    slider.marker.color = 'green';
 
     while True:
         slider.draw();
@@ -124,8 +125,8 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
 
     box_left = visual.Rect(win,width = 0.3*win.size[0],height = 0.4*win.size[1],fillColor="#c8c8c8",lineColor = "#808080",lineWidth=5,pos=(-0.2*win.size[0],0.1*win.size[1]));
     box_right = visual.Rect(win,width = 0.3*win.size[0],height = 0.4*win.size[1],fillColor="#c8c8c8",lineColor = "#808080",lineWidth=5,pos=(0.2*win.size[0],0.1*win.size[1]));
-    p_left = visual.ImageStim(win=win,image=f"IMG/{image_P_left}", size=(400,400) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
-    p_right= visual.ImageStim(win=win,image=f"IMG/{image_P_right}", size=(400,400) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
+    p_left = visual.ImageStim(win=win,image=f"IMG/{image_P_left}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
+    p_right= visual.ImageStim(win=win,image=f"IMG/{image_P_right}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
     
     text_left = visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pl]][trial]]}", bold= True, pos=(-0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
     text_right= visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pr]][trial]]}", bold= True, pos=(0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
@@ -233,18 +234,10 @@ def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","L
     order = np.concatenate((np.array(high_conf).flat,np.array(low_conf).flat));#Flat ensure it is one dimensional thank you python for being so weird
 
     chosen = [];
-    print(player_list);
     s = 0;
     while s<maxSample and len(order)>1:  #While we still can sample
-        
         new_sampled =sampling_player(win,order[0],order[1],table,ref_table,trial,conf_label=conf_label); #I decided not to randomize left right here I might be wrong
         chosen.append(new_sampled);
-        print(chosen);
-        print(np.where(np.array(player_list)==new_sampled));
-        print(order);
-        selected_index = np.where(np.array(player_list)==new_sampled);
-        order = order[order!=selected_index[0]];  #Delete the indexes that correspond to the selected player 
-        print(order);
 
         if 'escape' in chosen:
             return 'escape'
@@ -252,11 +245,43 @@ def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","L
             chosen.remove('stop');
             print("Sampling stopped");
             return chosen 
+        else:
+            selected_index = np.where(np.array(player_list)==new_sampled);
+            order = order[order!=selected_index[0]];  #Delete the indexes that correspond to the selected player 
+
         s+=1;
 
     return chosen
 
 
 
+def show_belief(win,sampled,table,ref_table,trial,slider,showing_time=1):
+    '''Only show the belief of the participant on a slider axis'''
+    no_text = visual.TextStim(win, text="No", color="white", height=0.08*win.size[1],pos=(-0.4*win.size[0],0));
+    yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
+    
+    # Compute the position of the ghost' ticks
+    ticks = slider.ticks;
+    slider_length = slider.size[0];  # The width of the slider in pixels
+    tick_positions = [slider.pos[0] - slider_length / 2 + i * (slider_length / (len(ticks) - 1)) for i in range(len(ticks))];
+    
+    ghost_tick = visual.Rect(win, width=.015*slider_length, height=.065*slider_length, pos=(tick_positions[0], slider.pos[1]), fillColor='grey', lineColor='grey')
+    print(table);print(sampled);
+    for i in range(len(sampled)):
+        ghost = sampled[i];
+        print(ghost);
+        belief = table[ghost][trial];
+        #Load the correct image stim
+        ghost_face = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief], slider.pos[1]-0.15*win.size[1])); 
 
 
+        print(belief);
+        ghost_tick.pos = (tick_positions[belief], slider.pos[1]);
+        slider.draw();
+        ghost_tick.draw();
+        ghost_face.draw();
+        no_text.draw(); 
+        yes_text.draw(); 
+        win.flip();
+        core.wait(showing_time);
+    return 'escape'

@@ -33,7 +33,7 @@ while trial<time:
             if gabor_response == 'escape':
                 break
             else:
-                right = check_gabor_response(gabor_response,global_obj["game"]["Stim"][trial],len_slider);
+                right = check_gabor_response(gabor_response,global_obj["game"]["Stim"][trial],len_slider); #Check gabor response and update the difficulty
                 print(f"Accuracy (one shot) {right}");
 
     #Sampling phase
@@ -41,9 +41,12 @@ while trial<time:
     if 'escape' in sampled:
         break
     print(sampled);
-    #Just to understand
-    win.flip();
-    core.wait(2);   
+
+    # Belief sampled:
+    if show_belief(win,sampled,global_obj["game"],global_obj["ref"],trial,global_obj["slider"]) == 'escape':
+        break
+
+
     trial += 1;
     print(f"\nTrial {trial}");
 
