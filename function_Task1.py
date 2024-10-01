@@ -427,7 +427,7 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     return 0
 
 
-def quick_replay(win,sampled,table_ref,ready_time=2):
+def quick_replay(win,sampled,ref_table,clock,ready_time=2):
     '''This shows quickly all the participants you have to click on "y" if you saw him "n" otherwise as quickly as you can'''
     #Get ready screen
     get_ready= visual.TextStim(win, text="Did you see their opinion this round \n\nGet Ready..",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
@@ -435,10 +435,36 @@ def quick_replay(win,sampled,table_ref,ready_time=2):
     win.flip();
     core.wait(ready_time)
     #Task 
-    player_list = table_ref.keys();
-    
-    
-    return 0, 0
+    player_list = list(ref_table.keys());
+    indexes = np.arange(0,len(player_list));
+    np.random.shuffle(indexes);
+    print('indexes',indexes);
+    key_pressed=[];acc=[];rt=[];
+    for i in indexes:
+        start = clock.getTime()
+        player = player_list[i];
+        print(player);
+        avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+        avatar.draw();
+        win.flip();
+        keys = event.waitKeys(maxWait=1,keyList=['escape','y','n']);
+        if keys is not None:
+            if 'escape' in keys:
+                return 'escape'
+            elif 'y' in keys:
+                key_pressed.append('y');
+                end = clock.getTime(); 
+                rt.append(end-start);
+                acc.append(player in sampled); #True would be if player has been sampled
+            elif 'n' in keys:
+                key_pressed.append('n');
+                end = clock.getTime();
+                rt.append(end-start);
+                acc.append(player not in sampled); #True would be if player has not been sampled
+        win.flip();
+        core.wait(.1);
+
+    return acc, rt
 
 
 def start_screen(win):
