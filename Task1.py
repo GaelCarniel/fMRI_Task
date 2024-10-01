@@ -22,39 +22,45 @@ print(f"Trial {trial}");
 len_slider = len(global_obj["slider"].ticks);
 
 while trial<time:
-    #Perception task
-    angles, g_delta = gabor_angles(gabor_response,right,global_obj["game"]["Stim"][trial],g_delta,len_slider);  #First automation might be more complex later
-    print(f"Gabor angle {angles} delta: {g_delta}");
-    gabor_response = gabor_task(win,angles,.8,.2,global_obj["slider"]);
-    print(f"Belief: {gabor_response}");
+    if False:
+        #Perception task
+        angles, g_delta = gabor_angles(gabor_response,right,global_obj["game"]["Stim"][trial],g_delta,len_slider);  #First automation might be more complex later
+        print(f"Gabor angle {angles} delta: {g_delta}");
+        gabor_response = gabor_task(win,angles,.8,.2,global_obj["slider"]);
+        print(f"Belief: {gabor_response}");
 
-    #Response processing
-    if gabor_response is not None:
-        if gabor_response == 'escape':
+        #Response processing
+        if gabor_response is not None:
+            if gabor_response == 'escape':
+                break
+            else:
+                right = check_gabor_response(gabor_response,global_obj["game"]["Stim"][trial]); #Check gabor response and update the difficulty
+                print(f"Accuracy (one shot) {right}");
+
+        #Sampling phase
+        sampled = sampling_players(win,global_obj["game"],global_obj["ref"],trial);
+        if 'escape' in sampled:
             break
-        else:
-            right = check_gabor_response(gabor_response,global_obj["game"]["Stim"][trial]); #Check gabor response and update the difficulty
-            print(f"Accuracy (one shot) {right}");
+        print(sampled);
 
-    #Sampling phase
-    sampled = sampling_players(win,global_obj["game"],global_obj["ref"],trial);
-    if 'escape' in sampled:
-        break
-    print(sampled);
+        # Belief sampled:
+        if show_belief(win,sampled,global_obj["game"],global_obj["ref"],trial,global_obj["slider"]) != 0:
+            break
 
-    # Belief sampled:
-    if show_belief(win,sampled,global_obj["game"],global_obj["ref"],trial,global_obj["slider"]) != 0:
-        break
-
-    print("Update phase");
-    updt = update_belief(win,gabor_response,sampled,global_obj["game"],global_obj["ref"],trial,global_obj["slider"]);
-    if updt == 'escape':
-        break
-    print(f"Belief updated: {updt}");
+        print("Update phase");
+        updt = update_belief(win,gabor_response,sampled,global_obj["game"],global_obj["ref"],trial,global_obj["slider"]);
+        if updt == 'escape':
+            break
+        print(f"Belief updated: {updt}");
+        
+        #Feedback
+        print(global_obj["game"]["Stim"] );
+        feedback(win,updt,angles);
     
-    #Feedback
-    print(global_obj["game"]["Stim"] );
-    feedback(win,updt,angles);
+    sampled = ['P5','P3'];
+    #Replay
+    acc, rt = quick_replay(win,sampled,global_obj["ref"]);
+    print(f"Replay:\naccuracy:{acc}\nrt{rt}");
 
     trial += 1;
     print(f"\nTrial {trial}");

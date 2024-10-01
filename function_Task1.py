@@ -29,7 +29,7 @@ def init(win, ticks=[0,1,2,3]):
     return dictionary
 
 
-def gabor_task(win,angles,tstim,tvoid,slider,max_resp_time=5,sf = .05,size=400,contrast=1.0):
+def gabor_task(win,angles,tstim,tvoid,slider,max_resp_time=5,sf = 0.05,size=600,contrast=1.0):
     '''Gabor task with predefined parameters'''
 
     if np.isscalar(angles):
@@ -423,9 +423,22 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     image_feedback.draw()
     win.flip();
     core.wait(time);
-    
+
     return 0
 
+
+def quick_replay(win,sampled,table_ref,ready_time=2):
+    '''This shows quickly all the participants you have to click on "y" if you saw him "n" otherwise as quickly as you can'''
+    #Get ready screen
+    get_ready= visual.TextStim(win, text="Did you see their opinion this round \n\nGet Ready..",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
+    get_ready.draw();
+    win.flip();
+    core.wait(ready_time)
+    #Task 
+    player_list = table_ref.keys();
+    
+    
+    return 0, 0
 
 
 def start_screen(win):
