@@ -62,10 +62,12 @@ while trial<time:
     acc, rt = quick_replay(win,sampled,global_obj["ref"],clock);
     print("Replay:\n");
     print(f"accuracy:{acc}\nrt{rt}");
-    break
+
 
     trial += 1;
     print(f"\nTrial {trial}");
+
+finish_screen(win);
 
 
 win.close();

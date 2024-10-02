@@ -427,7 +427,7 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     return 0
 
 
-def quick_replay(win,sampled,ref_table,clock,ready_time=2):
+def quick_replay(win,sampled,ref_table,clock,ready_time=2,transition_time=1.8):
     '''This shows quickly all the participants you have to click on "y" if you saw him "n" otherwise as quickly as you can'''
     #Get ready screen
     get_ready= visual.TextStim(win, text="Did you see their opinion this round \n\nGet Ready..",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
@@ -438,12 +438,10 @@ def quick_replay(win,sampled,ref_table,clock,ready_time=2):
     player_list = list(ref_table.keys());
     indexes = np.arange(0,len(player_list));
     np.random.shuffle(indexes);
-    print('indexes',indexes);
     key_pressed=[];acc=[];rt=[];
     for i in indexes:
         start = clock.getTime()
         player = player_list[i];
-        print(player);
         avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
         avatar.draw();
         win.flip();
@@ -464,6 +462,12 @@ def quick_replay(win,sampled,ref_table,clock,ready_time=2):
         win.flip();
         core.wait(.1);
 
+    #Mark the end of a round
+    next_round = visual.TextStim(win, text="Next round",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
+    next_round.draw();
+    win.flip()
+    core.wait(transition_time);
+
     return acc, rt
 
 
@@ -471,10 +475,9 @@ def start_screen(win):
     """
     Display the start panel
     """
-    screen_size = win.size
 
-    text = visual.TextStim(win, text="Welcome to this experiment!", color='#f5f5f5', height=80, pos=(0, 0.20*screen_size[1]),wrapWidth=screen_size[0]*0.8)
-    text2 = visual.TextStim(win, text="Press 'space' if you are ready to start.", color='#f5f5f5', height=55, pos=(0, -0.2*screen_size[1]),wrapWidth=screen_size[0]*0.8)
+    text = visual.TextStim(win, text="Welcome to this experiment!", color='#f5f5f5', height=0.1*win.size[1], pos=(0, 0.20*win.size[1]),wrapWidth=win.size[0]*0.8)
+    text2 = visual.TextStim(win, text="Press 'space' if you are ready to start.", color='#f5f5f5', height=0.05*win.size[1], pos=(0, -0.2*win.size[1]),wrapWidth=win.size[0]*0.8)
 
     text.draw()
     text2.draw()
@@ -483,3 +486,23 @@ def start_screen(win):
     keys = event.waitKeys(keyList=['space', 'escape'])
 
     return keys
+
+
+def finish_screen(win):
+    """
+    Display the end panel
+    """
+    bg = visual.ImageStim(win=win,image="IMG/Fireworks.jpg",size = win.size,pos=(0,0));
+    bg.draw();
+
+    text = visual.TextStim(win, text="Thank you for participating!", color='white', height=0.12*win.size[1], pos=(0, -0.05*win.size[1]),wrapWidth=win.size[0]*0.95)
+    text2 = visual.TextStim(win, text="Press any key to exit", color='white',height=0.08*win.size[1], pos=(0, -0.3*win.size[1]),wrapWidth=win.size[0]*0.8)
+    text.draw()
+    text2.draw()
+    
+    
+
+    win.flip()
+    
+    event.waitKeys()
+    return 0
