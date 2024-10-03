@@ -459,6 +459,9 @@ def quick_replay(win,sampled,ref_table,clock,ready_time=2,transition_time=1.8):
                 end = clock.getTime();
                 rt.append(end-start);
                 acc.append(player not in sampled); #True would be if player has not been sampled
+        else:
+            rt.append('NA');
+            acc.append(False);
         win.flip();
         core.wait(.1);
 
