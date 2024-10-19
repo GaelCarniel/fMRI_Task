@@ -4,33 +4,95 @@ import numpy as np
 # Create a window
 win = visual.Window(units='pix', fullscr=True, color='black');
 
-# Parameters for the circle
-R = 0.8  # Diameter of the circle (normalized units)
-r = R / 2  # Radius of the circle
+def init(win,size=600,contrast=1.0,sf = 0.05):
+    ### Instantiate gabor object I think it's quick enough not to be in init()
+    gabor = visual.GratingStim(win=win,
+        tex="sin",            # sine wave grating
+        mask="gauss",         # Gaussian mask
+        sf=sf,              # spatial frequency
+        ori=0,               # orientation in degrees
+        size=size,             # size of the Gabor patch
+        contrast=contrast);         # contrast of the Gabor patch
+    ### Instantiate slider object 
+    slider = visual.Slider(win, 
+        ticks=ticks,  # The range is from 0 to 3
+        labels=lbl,  # Empty labels for each tick
+        granularity=1,  # Discrete steps
+        style=['rating'],  # Style of the slider
+        size=(0.6*win.size[0], 0.05*win.size[1]),  # Size of the slider
+        pos=(0, 0));  # Position at the center
+    slider.marker.color = 'green';
 
-n_points = 12  # Number of points
-theta_step = 2 * np.pi / n_points  # Angular step between points
-
-D = 0.25*win.size[1];
-
-# Create and draw 12 points equidistant on the circle
-for i in range(n_points):
-    theta_i = i * theta_step  # Angle for the ith point
-    x = np.cos(theta_i)  # X-coordinate
-    y = np.sin(theta_i)  # Y-coordinate
+def gabor_angles(past_belief,right_before,true_state,delta,len_slider,jump=2):
+    '''Define gabor angle with adaptative difficulty: (First automation might be more complex later)'''
+    mid = len_slider//2;
+    angle1 = np.random.randint(0,361);
     
-    x = x*D
-    y = y*D;
+    #Difficulty update
+    if right_before == 1:#He was right
+        if past_belief not in [mid,mid+1]: #If he is confident enough
+            if delta>3:
+                delta -= jump;
+    else:
+        delta += jump;
 
-    # Create a small dot at each (x, y) position
-    dot = visual.Circle(win, radius=0.02*win.size[1], pos=(x, y), fillColor='white')
-    dot.draw()
+    if true_state==1:
+        return [angle1,angle1],delta
+    else:
+        sign = np.random.choice([-1,1]);
+        angle2 = (angle1 + sign*delta)%360;
+        return [angle1,angle2],delta
 
-# Flip to display all dots on the circle
-win.flip()
+def display_gabors(win,angles,tstim,tvoid,max_resp_time=5):
+    gabor.ori = angle[0];
+    gabor.draw();
+    win.flip();
+    core.wait(t_stim);
 
-# Pause for a while to see the result
-event.waitKeys();
+    win.flip();
+    core.wait(t_void);
+
+    gabor.ori = angle[1];
+    gabor.draw();
+    win.flip();
+    core.wait(t_stim);
+    if angles[0]==angles[1]:
+        return "aligned"
+    else:
+        return "not-aligned"
+
+def question(win,slider,state,maxWait=1):
+    slider.markerColor = None;
+    slider.draw();
+    win.flip();
+    even.waitKeys(maxWait=maxWait,keyList=['a','r']);
+    if keys not None:
+        if ('a' in keys and state == 'aligned') or ('r' in keys and state =='not-aligned'):
+            return True
+        else:
+            return False
+    else:
+        fixation_cross();
+        even.waitKeys(keyList=['a','r']);
+        if ('a' in keys and state == 'aligned') or ('r' in keys and state =='not-aligned'):
+            return True
+        else:
+            return False
+
+
+def fixation_cross(win):
+    fixation = visual.TextStim(win, text='+', color='white', height=0.3*win.size[1]);
+    fixation.draw();
+    win.flip();
+
+
+while True:
+    upside_down_triangle.draw()
+    win.flip();
+    event.waitKeys();
+    
+    break
 
 # Close the window
-win.close()
+win.close();
+core.quit();

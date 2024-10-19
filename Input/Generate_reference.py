@@ -1,6 +1,6 @@
 import json
 
-img = [f"{i}.png" for i in range(1, 7)]
+img = [f"Avatar{i}.png" for i in range(1, 7)]
 player = [f"P{i}" for i in range(1, 7)]
 
 
