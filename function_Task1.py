@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from psychopy import visual, event, core, data
-import collections
+import collections #Manage dictionnaries easier
+from PIL import Image #Apply filter on images
 
 
 def init(win, ticks=[0,1,2,3]):
@@ -19,13 +20,24 @@ def init(win, ticks=[0,1,2,3]):
         
     ### Read inputs
     game_schedule = pd.read_csv("Input/Game_Schedule.csv");
-    #with open('Input/reference.json', 'r') as json_file:
-    #    ref_table = json.load(json_file); #Sadly cannot do that because I would've to pip install json but on pavlovia it might not be possible
-    with open('Input/reference.json', 'r') as file:
-        json_string = file.read()
-    ref_table = eval(json_string)
 
-    dictionary = {"slider":slider,"game":game_schedule,"ref":ref_table};
+    with open('Input/reference.json', 'r') as file:
+        json_string = file.read();
+    ref_table = eval(json_string);
+    
+    with open('Input/reference_bis.json', 'r') as file:
+        json_string = file.read();
+    ref_table_bis = eval(json_string);
+    
+    with open('Input/reference_intruders.json', 'r') as file:
+        json_string = file.read();
+    ref_table_intruder = eval(json_string);
+
+    refs = [ref_table,ref_table_bis];
+    s = [0,1];
+    np.random.shuffle(s); #Select which one of the set will be bis #Select which one of the set will be bis
+
+    dictionary = {"slider":slider,"game":game_schedule,"ref":refs[s[0]],"ref_bis":refs[s[0]],"intruders":ref_table_intruder}; #I changed my mind now I want the same faces for both training and task (to debate)
     return dictionary
 
 
@@ -127,8 +139,28 @@ def gabor_angles(past_belief,right_before,true_state,delta,len_slider,jump=2):
         angle2 = (angle1 + sign*delta)%360;
         return [angle1,angle2],delta
 
+def gabor_angles_alt_version(true_state,g_delta,len_slider,sd=2):
+    '''Define gabor angle with different difficulty:'''
+    mid = len_slider//2;
+    angle1 = np.random.randint(0,361);
+    
+    #Difficulty update
+    if right_before == 1:#He was right
+        if past_belief not in [mid,mid+1]: #If he is confident enough
+            if delta>3:
+                delta -= jump;
+    else:
+        delta += jump;
 
-def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Low","High"]):
+    if true_state==1:
+        return [angle1,angle1],delta
+    else:
+        sign = np.random.choice([-1,1]);
+        angle2 = (angle1 + sign*delta)%360;
+        return [angle1,angle2],delta
+
+
+def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Low","High"],training = False):
     '''Display the panel for sampling selection (no randomisation here)'''
     player_list = list(ref_table.keys());
     
@@ -137,9 +169,17 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
 
     box_left = visual.Rect(win,width = 0.3*win.size[0],height = 0.4*win.size[1],fillColor="#c8c8c8",lineColor = "#808080",lineWidth=5,pos=(-0.2*win.size[0],0.1*win.size[1]));
     box_right = visual.Rect(win,width = 0.3*win.size[0],height = 0.4*win.size[1],fillColor="#c8c8c8",lineColor = "#808080",lineWidth=5,pos=(0.2*win.size[0],0.1*win.size[1]));
-    p_left = visual.ImageStim(win=win,image=f"IMG/{image_P_left}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
-    p_right= visual.ImageStim(win=win,image=f"IMG/{image_P_right}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
-    
+    if training: #Images will be in black and white
+        p_left_colour = Image.open(f"IMG/{image_P_left}");
+        p_left_grey = p_left_colour.convert('L');
+        p_left = visual.ImageStim(win=win,image=p_left_grey, size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
+        p_right_colour = Image.open(f"IMG/{image_P_right}");
+        p_right_grey = p_right_colour.convert('L');
+        p_right= visual.ImageStim(win=win,image=p_right_grey, size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
+    else:
+        p_left = visual.ImageStim(win=win,image=f"IMG/{image_P_left}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(-0.2*win.size[0],0.15*win.size[1])); 
+        p_right= visual.ImageStim(win=win,image=f"IMG/{image_P_right}", size=(0.27*win.size[1],0.27*win.size[1]) ,pos=(0.2*win.size[0],0.15*win.size[1])); 
+
     #text_left = visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pl]][trial]]}", bold= True, pos=(-0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
     #text_right= visual.TextStim(win=win,text=f"Confidence: {conf_label[table[player_list[pr]][trial]]}", bold= True, pos=(0.2*win.size[0],-0.05*win.size[1]), height = 0.05*win.size[1], wrapWidth = .5*win.size[0])
     
@@ -188,13 +228,11 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
 #        text_nochoice.draw();
         win.flip();
 
-        keys = event.waitKeys(keyList=['escape','return','y','n','h']);
+        keys = event.waitKeys(keyList=['escape','a','z','e','r']);
         
         if 'escape' in keys:
             return 'escape'
-        elif 'return' in keys:
-            return 'return'
-        elif 'y' in keys:
+        elif 'a' in keys:
             print("left");
 #            feedback_objects["lchoice"].draw();
             box_left.draw();
@@ -212,7 +250,7 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
             win.flip();
             core.wait(0.15);
             return player_list[pl]
-        elif 'n' in keys:
+        elif 'r' in keys:
             print("right");
 #            feedback_objects["rchoice"].draw();
             box_left.draw();
@@ -230,7 +268,7 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
             win.flip();
             core.wait(0.15);
             return player_list[pr]
-        elif 'h' in keys:
+        elif 'z' in keys or 'e' in keys:
 #            feedback_objects["nochoice"].draw();
             box_left.draw();
             p_left.draw();
@@ -249,7 +287,7 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
             return "stop"
 
  
-def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","Low","Low","High"]):
+def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","Low","Low","High"],training = False):
     '''Select the players to show and call the function to plot them, return the list of sampled players
     Be careful this function have to be adapted MANUALLY to the confidence array [0,1,2,3]'''
     ###Version 1 sorted by confidence
@@ -265,7 +303,7 @@ def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","L
     s = 0;
     while s<maxSample and len(order)>1:  #While we still can sample
         np.random.shuffle(leftright);
-        new_sampled =sampling_player(win,order[leftright[0]],order[leftright[1]],table,ref_table,trial,conf_label=conf_label); 
+        new_sampled =sampling_player(win,order[leftright[0]],order[leftright[1]],table,ref_table,trial,conf_label=conf_label,training=training); 
         chosen.append(new_sampled);
 
         if 'escape' in chosen:
@@ -316,7 +354,7 @@ def show_belief(win,sampled,table,ref_table,trial,slider,showing_time=1):
     return 0
 
 
-def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presentation_time=2):
+def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presentation_time=2,training=False):
     '''This functions show the last panel (aggregated belief) and offer the possibility for the player to update his belief'''
 
     question = visual.TextStim(win, text="\nWere these two patches aligned?",color="white", height=.07*win.size[1],wrapWidth=.95*win.size[0],pos=(0, 0.35*win.size[1]));
@@ -365,7 +403,12 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presenta
                         ghost_l = grouped_belief[i][0+people_shawn];
                         belief = table[ghost_l][trial];
                         #Load the correct image stim and replace the ghost tick
-                        ghost_face_l = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost_l]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]-0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
+                        if training:
+                            img_colour = Image.open(f"IMG/{ref_table[ghost_l]}");
+                            img_grey_l = img_colour.convert('L');
+                            ghost_face_l = visual.ImageStim(win=win,image=img_grey_l, size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]-0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
+                        else:
+                            ghost_face_l = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost_l]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]-0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
                         ghost_tick.pos = (tick_positions[belief], slider.pos[1]+double*0.05*win.size[1]);
                         #Draw
                         ghost_tick.draw();
@@ -376,7 +419,12 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presenta
                         belief = table[ghost_r][trial];
                         
                         #Load the correct image stim and replace the ghost tick
-                        ghost_face_r = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost_r]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]+0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
+                        if training:
+                            img_colour = Image.open(f"IMG/{ref_table[ghost_r]}");
+                            img_grey_r = img_colour.convert('L');
+                            ghost_face_r = visual.ImageStim(win=win,image=img_grey_r, size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]+0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
+                        else:
+                            ghost_face_r = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost_r]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief]+0.09*win.size[1], slider.pos[1]-0.15*offset*win.size[1])); 
                         ghost_tick.pos = (tick_positions[belief], slider.pos[1]+2*(double)*0.05*win.size[1]);
                         #Draw
                         ghost_tick.draw();
@@ -388,7 +436,12 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presenta
                     belief = table[ghost][trial];
                     
                     #Load the correct image stim and replace the ghost tick
-                    ghost_face = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief], slider.pos[1]-0.15*offset*win.size[1])); 
+                    if training:
+                        img_colour = Image.open(f"IMG/{ref_table[ghost]}");
+                        img_grey = img_colour.convert('L');
+                        ghost_face = visual.ImageStim(win=win,image=img_grey, size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief], slider.pos[1]-0.15*offset*win.size[1])); 
+                    else:
+                        ghost_face = visual.ImageStim(win=win,image=f"IMG/{ref_table[ghost]}", size=(0.17*win.size[1],0.17*win.size[1]) ,pos=(tick_positions[belief], slider.pos[1]-0.15*offset*win.size[1])); 
                     ghost_tick.pos = ghost_tick.pos = (tick_positions[belief], slider.pos[1]+(2*double+single)*0.05*win.size[1]);
                     #Draw
                     ghost_tick.draw();
@@ -443,68 +496,111 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
 
     if right == 1:
         personal_feedback = visual.TextStim(win, text="You are right!", color='white', height=0.1*win.size[1], pos=(0, 0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
-        image_feedback = visual.ImageStim(win=win,image="IMG/Right.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,0));
+        image_feedback = visual.ImageStim(win=win,image="IMG/Right.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,0.1*win.size[1]));
     else:
         personal_feedback = visual.TextStim(win, text="You are wrong!", color='white', height=0.1*win.size[1], pos=(0, 0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
-        image_feedback = visual.ImageStim(win=win,image="IMG/Wrong.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,0));
+        image_feedback = visual.ImageStim(win=win,image="IMG/Wrong.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,0.1*win.size[1]));
         
     if g_yes:
         global_feedback = visual.TextStim(win, text="The patches were aligned", color='white', height=0.1*win.size[1], pos=(0, -0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
+        image_global_feedback = visual.ImageStim(win=win,image="IMG/aligned.png", size=(0.15*win.size[1],0.25*win.size[1]) ,pos=(0,-0.2*win.size[1]));
+
     else:
         global_feedback = visual.TextStim(win, text="The patches weren't aligned", color='white', height=0.1*win.size[1], pos=(0, -0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
-
-    personal_feedback.draw();
-    global_feedback.draw();
-    image_feedback.draw()
+        image_global_feedback = visual.ImageStim(win=win,image="IMG/not_aligned.png", size=(0.15*win.size[1],0.25*win.size[1]) ,pos=(0,-0.2*win.size[1]));
+#    personal_feedback.draw();
+#    global_feedback.draw();
+    image_feedback.draw();
+    image_global_feedback.draw();
     win.flip();
     core.wait(time);
 
     return 0
 
 
-def quick_replay(win,sampled,ref_table,clock,transition_time=1.8):
+def quick_replay(win,sampled,global_dict,clock,transition_time=1.8,training = False,intruder_p = 1/18):
     '''This shows quickly all the participants you have to click on "y" if you saw him "n" otherwise as quickly as you can'''
     #Get ready screen
 #    get_ready= visual.TextStim(win, text="Did you see their opinion this round \n\nGet Ready..",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
 #    get_ready.draw();
 #    win.flip();
 
+    ref_table = global_dict['ref'];
+    ref_intruders = global_dict['intruders'];
     #Task 
     player_list = list(ref_table.keys());
     indexes = np.arange(0,len(player_list));
     np.random.shuffle(indexes);
-    key_pressed=[];acc=[];rt=[];
+    key_pressed=[];acc=[];rt=[];intruder_appeared = False;
     for i in indexes:
         start = clock.getTime()
-        player = player_list[i];
-        avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+        if intruder_appeared:
+            dice = 1;
+        else:
+            dice = np.random.uniform(0, 1);
+
+        if dice < intruder_p:
+            intruder = np.random.choice(list(ref_intruders.values()));
+            if training:
+                img_colour = Image.open(f"IMG/{intruder}")
+                img_grey = img_colour.convert('L')
+                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+            else:
+                avatar = visual.ImageStim(win=win,image=f"IMG/{intruder}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+            intruder_appeared = True;
+        else:
+            player = player_list[i];
+            if training:
+                img_colour = Image.open(f"IMG/{ref_table[player]}")
+                img_grey = img_colour.convert('L')
+                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+
+            else:
+                avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
         avatar.draw();
         win.flip();
-        keys = event.waitKeys(maxWait=1,keyList=['escape','y','n']);
+        keys = event.waitKeys(maxWait=1,keyList=['escape','a','z','e','r']);
         if keys is not None:
-            if 'escape' in keys:
-                return 'escape'
-            elif 'y' in keys:
-                key_pressed.append('y');
-                end = clock.getTime(); 
-                rt.append(end-start);
-                acc.append(player in sampled); #True would be if player has been sampled
-            elif 'n' in keys:
-                key_pressed.append('n');
-                end = clock.getTime();
-                rt.append(end-start);
-                acc.append(player not in sampled); #True would be if player has not been sampled
+            key_pressed.append(keys);
+            end = clock.getTime();
+            rt.append(end-start);
+            if dice < intruder_p:
+                if 'z' in keys or 'e' in keys:
+                    acc.append('detected'); #The player detected the intruder
+                else:
+                    acc.append('undetected'); #The player didn't detect the intruder
+            else:
+                if 'escape' in keys:
+                    return 'escape'
+                elif 'r' in keys:
+                    acc.append(player in sampled); #True would be if player has been sampled
+                elif 'a' in keys:
+                    acc.append(player not in sampled); #True would be if player has not been sampled
             win.flip();
             core.wait(.1);
         else:
             fixation_cross(win); 
-            keys = event.waitKeys(keyList=['escape','y','n']);
+            keys = event.waitKeys(keyList=['escape','a','z','e','r']);
             end = clock.getTime();
             rt.append(end-start);
-            if ('y' in keys and player in sampled)or ('n' in keys and player not in sampled):
-                acc.append(False);
+            key_pressed.append(keys);
+            if dice < intruder_p:
+                if 'z' in keys or 'e' in keys:
+                    acc.append('detected'); #The player detected the intruder
+                else:
+                    acc.append('undetected'); #The player didn't detect the intruder
             else:
-                acc.append(True);
+                if ('r' in keys and player in sampled) or ('a' in keys and player not in sampled):
+                    acc.append(True);
+                else:
+                    acc.append(False);
+#        #Print section
+#        if dice>intruder_p:
+#            print(f'Player {player}');
+#        print(f'Dice {dice}');
+#        print(f'Avatar {avatar.image}');
+#        print(f'Keys {keys}');
+#        print(f'Acc {acc}');
 
 
     #Mark the end of a round
@@ -590,6 +686,17 @@ def start_screen(win):
     keys = event.waitKeys(keyList=['space', 'escape'])
 
     return keys
+
+def write_text(win, text, display_time=1):
+    """
+    Display text 
+    """
+    text2print = visual.TextStim(win, text=text, color='#f5f5f5', height=0.1*win.size[1], pos=(0, 0.10*win.size[1]),wrapWidth=win.size[0]*0.8)
+
+    text2print.draw()
+    win.flip()
+    core.wait(display_time);
+
 
 
 def finish_screen(win):
