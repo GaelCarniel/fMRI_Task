@@ -1,23 +1,13 @@
-from psychopy import visual, event, core
-from PIL import Image
+import pandas as pd
 
-# Load and convert the image to grayscale using PIL
-img_colour = Image.open('IMG/Avatar7.png')
-img_grey = img_colour.convert('L')
+# Create an empty list
+data = []
 
-# Create a PsychoPy window
-win = visual.Window([800, 800])
+# Add rows to the list
+data.append(["John", 25, "New York"])
+data.append(["Anna", 28, "Los Angeles"])
 
-# Load the grayscale image into PsychoPy and set opacity to darken it slightly
-image = visual.ImageStim(win, image=img_grey, opacity=1,size=(.5,.5))
+# Create the DataFrame with column names
+df = pd.DataFrame(data, columns=["Name", "Age", "City"])
 
-# Draw and display the image
-image.draw()
-win.flip()
-
-# Wait for a keypress before closing
-event.waitKeys()
-
-# Close the window
-win.close()
-core.quit()
+print(df)

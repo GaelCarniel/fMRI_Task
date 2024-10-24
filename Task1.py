@@ -6,9 +6,7 @@ training_delta = 15; #Constant delta only use in training
 n_task = 5; #Duration of the task should be longuer than the generated stim
 n_training_set = 2; #Number of training sets
 
-#Note 7 trial 3 min
-#Be careful for now there is only one game stim so training and actual phase or exactly the same states
-
+#Note 7 trial 3 min minimum
 
 # Create a window
 win = visual.Window(units='pix', fullscr=True, color='black');
@@ -16,8 +14,9 @@ win = visual.Window(units='pix', fullscr=True, color='black');
 global_obj = init(win); #Dictionnary that contains heavy objects
 
 ##Object in the global env
-time = min(len(global_obj["game"]["Stim"]),n_task);
+time = min(len(global_obj["game"]["Stim"]),n_task+n_training_set);#The first trial are read from the same stim (for now)
 len_slider = len(global_obj["slider"].ticks);
+
 #Initiate perception task
 gabor_response = 2; #initial belief to launch the loop
 right = 1; #Same to launch the loop
@@ -43,13 +42,13 @@ while t_trial<n_training_set:
     print(f"Belief: {gabor_response}, RT: {rt}");
     
     #Sampling phase
-    sampled = sampling_players(win,global_obj["game"],global_obj["ref"],t_trial,training = True);
+    sampled = sampling_players(win,global_obj["game"],global_obj["ref_bis"],t_trial,training = True);
     if 'escape' in sampled:
         break
     print(sampled);
 
     print("Update phase");
-    updt = update_belief(win,gabor_response,sampled,global_obj["game"],global_obj["ref"],t_trial,global_obj["slider"],training = True);
+    updt = update_belief(win,gabor_response,sampled,global_obj["game"],global_obj["ref_bis"],t_trial,global_obj["slider"],training = True);
     if updt == 'escape':
         break
     print(f"Belief updated: {updt}");
@@ -61,7 +60,7 @@ while t_trial<n_training_set:
     core.wait(2);
 
     #Replay
-    acc, rt = quick_replay(win,sampled,global_obj,clock,training=True);
+    acc, rt = quick_replay(win,sampled,global_obj['ref_bis'],global_obj['intruders'],clock,training=True,intruder_p=0);#No intruder they do not know who they are playing with
     print("Replay:\n");
     print(f"accuracy:{acc}\nrt{rt}");
 
@@ -69,12 +68,19 @@ while t_trial<n_training_set:
     print(f"\nTraining trial {t_trial}");
 
 
+##Presentation of other players
+print(f"Begining show others : {clock.getTime()}");
+out = presentation_off_others(win,global_obj["ref"]);
+if out == 'escape':
+    time=0;
+print(f"End show others : {clock.getTime()}");
+
 ##Task
 trial = 0;
 print(f"Trial {trial}");
 write_text(win,"Begining of the task");
 print(f"Begining task : {clock.getTime()}");
-while trial<time:
+while trial + t_trial < time:
     #Perception task
     angles, g_delta = gabor_angles(gabor_response,right,global_obj["game"]["Stim"][trial],g_delta,len_slider);  #First automation might be more complex later
     print(f"Gabor angle {angles} delta: {g_delta}");
@@ -113,7 +119,7 @@ while trial<time:
     core.wait(2);
 
     #Replay
-    acc, rt = quick_replay(win,sampled,global_obj,clock);
+    acc, rt = quick_replay(win,sampled,global_obj['ref'],global_obj['intruders'],clock);
     print("Replay:\n");
     print(f"accuracy:{acc}\nrt{rt}");
 

@@ -37,7 +37,7 @@ def init(win, ticks=[0,1,2,3]):
     s = [0,1];
     np.random.shuffle(s); #Select which one of the set will be bis #Select which one of the set will be bis
 
-    dictionary = {"slider":slider,"game":game_schedule,"ref":refs[s[0]],"ref_bis":refs[s[0]],"intruders":ref_table_intruder}; #I changed my mind now I want the same faces for both training and task (to debate)
+    dictionary = {"slider":slider,"game":game_schedule,"ref":refs[s[0]],"ref_bis":refs[s[1]],"intruders":ref_table_intruder}; 
     return dictionary
 
 
@@ -518,15 +518,13 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     return 0
 
 
-def quick_replay(win,sampled,global_dict,clock,transition_time=1.8,training = False,intruder_p = 1/18):
+def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,training = False,intruder_p = 1/18):
     '''This shows quickly all the participants you have to click on "y" if you saw him "n" otherwise as quickly as you can'''
     #Get ready screen
 #    get_ready= visual.TextStim(win, text="Did you see their opinion this round \n\nGet Ready..",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
 #    get_ready.draw();
 #    win.flip();
 
-    ref_table = global_dict['ref'];
-    ref_intruders = global_dict['intruders'];
     #Task 
     player_list = list(ref_table.keys());
     indexes = np.arange(0,len(player_list));
@@ -670,6 +668,31 @@ def staircase_quest(win, n_trials = 50, tstim=.5, tvoid=.5, intertrial=.5, initi
 
 #        print(f"Trial {trial} delta = {delta} ({same_orientation})");
     return quest.mean()
+
+def presentation_off_others(win, ref, time_limit=False , maxTime=10):
+    '''Display the other 6 participant faces'''
+    if len(ref) != 6:
+        print("Be carful this function is only meant to display 6 participants");
+
+    player_list = list(ref.keys());
+    np.random.shuffle(player_list);
+    for i in range(6):
+        player = player_list[i];
+        avatar = visual.ImageStim(win=win,image=f"IMG/{ref[player]}", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=((0.3*(i%3)-0.3)*win.size[1],(0.3*(i//3)-(0.3/2))*win.size[1]));
+        avatar.draw();
+    win.flip()
+
+    keys = 'nokeys';
+    if time_limit:
+        keys = event.waitKeys(maxWait=maxTime,keyList=['escape','a','z','e','r']);
+    else:
+        keys = event.waitKeys(keyList=['escape','a','z','e','r']);
+
+    if 'escape' in keys:
+        return 'escape'
+    else:
+        return 'go'
+
 
 def start_screen(win):
     """
