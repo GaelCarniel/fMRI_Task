@@ -1,0 +1,91 @@
+---
+title: ""
+author: ""
+date: ""
+output: pdf_document
+css: style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Mission Briefing: Quantum Alignment Task**
+
+**Welcome aboard, Mechanist!**\
+You’ve been selected to undertake a crucial mission in our spaceship's alignment module. Your task is to ensure the quantum gabors are aligned to maintain the stability of our flight path. Follow these instructions carefully to make accurate judgments.
+
+### **Instructions**
+
+1.  **Alignment Check**
+    -   You will be presented with two quantum patches.
+    -   Your task is to determine if these two patches are **aligned** or **misaligned**.
+    -   Look closely, as your decision here is essential for our spatial progression.
+2.  **Sampling Crew Insights**
+    -   If you’re unsure, you may **sample up to 3 fellow crew members** for their opinions:
+        -   You will be presented 2 members of your crew with their confidence about their answer (full dot: confident, empty dot: low confidence)
+        -   **Press** **'A'** to select the **left one**, **Press** **‘R’** to select the **right one**, **Press** **‘Z’** or **‘E’** to **stop sampling**.
+    -   Each crew member's opinion is based on their own confidence assessment, so select wisely.
+    -   To choose a crew member, you can consider how accurate they were in similar past tasks.
+3.  **Review and Adjust Your Judgment**
+    -   After consulting your selected crew members, you will have the opportunity to **review and possibly adjust** your original judgment.
+    -   Use the feedback wisely to ensure the quantum patches are aligned and learn about your crew-mates reliability.
+4.  **Crew Recall Task**
+    -   At the end of the round, an avatar of a crew member will appear.
+    -   **Press ‘R’** if you remember seeing this crew member during your current round.
+    -   **Press ‘A’** if you haven't seen this crew member in this round.
+    -   **Press ‘Z’** or **‘E’** if this crew member is not part of your designated crew.
+
+### **Good Luck, Mechanist!**
+
+Your keen eye for alignment and careful selection of crew opinions are vital to our mission's success. Make us proud, and remember—precision is key!
+
+------------------------------------------------------------------------
+
+# Reward conditions:
+
+As you progress in your alignment duties, select trials will be randomly chosen for **mission rewards** based on your performance and resource management.
+
+### **Reward System**
+
+1.  **Accurate Alignment Pays Off**
+    -   For each selected trial, you will earn **50 credits** for every accurate alignment decision.
+    -   Both your **initial judgment** and your **final reviewed judgment** will be considered. If both are correct, you double your credits!
+2.  **Crew Consultations Come at a Cost**
+    -   Consulting crew members can be helpful, but it comes with a small **resource cost** of **5 credits per crew member**.
+    -   Use crew consultations wisely to balance accuracy and reward.
+
+### **Reward Summary**
+
+-   **+50 credits** per accurate answer.
+-   **-5 credits** per consulted crew member.
+
+------------------------------------------------------------------------
+
+# **Mission Task Development: Training & Execution**
+
+To prepare you for the critical alignment task, you will go through a series of preparatory stages. Follow these steps carefully to familiarize yourself with the mission protocol and your crew.
+
+### **1. Training: Quantum Alignment Basics**
+
+-   In this initial stage, you’ll practice identifying alignment in **black-and-white quantum gabors**.
+-   This phase will help you sharpen your skills before moving into the full task.
+-   Focus on distinguishing between aligned and misaligned patches; this will be crucial in your main mission.
+
+### **2. Crew Introduction: Meet Your Team**
+
+-   You will be introduced to the **crew members** who may assist you during your alignment checks.
+-   **Study each crew member’s appearance** closely—you’ll need to recognize them to identify potential **intruders** during the mission.
+-   Remember: Not all avatars you encounter in the real task will belong to your crew.
+
+### **3. Real Task: Quantum Alignment Mission**
+
+-   With training and crew introductions complete, you’ll proceed to the main task.
+-   Apply your alignment skills and carefully consider when to seek advice from the crew.
+-   Remember, intruders may appear among the crew—stay vigilant!
+
+------------------------------------------------------------------------
+
+### **Good luck, Mechanist!**
+
+Preparation is your greatest tool. Master the basics, remember your allies, and navigate the mission with confidence.
