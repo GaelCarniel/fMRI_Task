@@ -79,16 +79,19 @@ def gabor_task(win,angles,tstim,tvoid,slider,clock,max_resp_time=5,sf = 0.05,siz
     ticks = slider.ticks; #Get ticks from the slider object
     
     question = visual.TextStim(win, text="Were these two patches aligned?",color="white", height=.08*win_height,wrapWidth=.8*win.size[0],pos=(0, 0.4*win_height));
-    no_text = visual.TextStim(win, text="No", color="white", height=0.08*win.size[1],pos=(-0.4*win.size[0],0));
-    yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
+#    no_text = visual.TextStim(win, text="No", color="white", height=0.08*win.size[1],pos=(-0.4*win.size[0],0));
+    no_im = visual.ImageStim(win=win,image="IMG/not_aligned.png", size=(0.22*win.size[1],0.22*win.size[1]) ,pos=(-0.4*win.size[0],0));
+
+#    yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
+    yes_im = visual.ImageStim(win=win,image="IMG/aligned.png", size=(0.22*win.size[1],0.22*win.size[1]) ,pos=(+0.4*win.size[0],0))
     
     slider.markerPos = np.random.randint(0, len(ticks));
     slider.marker.opacity = 0; #Invisible marker here
 
 #    question.draw();
     slider.draw();
-    no_text.draw(); 
-    yes_text.draw(); 
+    no_im.draw(); 
+    yes_im.draw(); 
     win.flip();
 
     keys = event.waitKeys(keyList=['a','z','e','r','escape']);
@@ -358,8 +361,10 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presenta
     '''This functions show the last panel (aggregated belief) and offer the possibility for the player to update his belief'''
 
     question = visual.TextStim(win, text="\nWere these two patches aligned?",color="white", height=.07*win.size[1],wrapWidth=.95*win.size[0],pos=(0, 0.35*win.size[1]));
-    no_text = visual.TextStim(win, text="No", color="white", height=0.08*win.size[1],pos=(-0.4*win.size[0],0));
-    yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
+#    no_text = visual.TextStim(win, text="No", color="white", height=0.08*win.size[1],pos=(-0.4*win.size[0],0));
+#    yes_text = visual.TextStim(win, text="Yes", color="white", height=0.08*win.size[1],pos=(+0.4*win.size[0],0));
+    yes_im = visual.ImageStim(win=win,image="IMG/aligned.png", size=(0.22*win.size[1],0.22*win.size[1]) ,pos=(+0.4*win.size[0],0))
+    no_im = visual.ImageStim(win=win,image="IMG/not_aligned.png", size=(0.22*win.size[1],0.22*win.size[1]) ,pos=(-0.4*win.size[0],0));
     
     # Compute the position of the ghost' ticks
     ticks = slider.ticks;
@@ -389,8 +394,8 @@ def update_belief(win,prior_belief,sampled,table,ref_table,trial,slider,presenta
     while True:
         #Slider draws
         slider.draw();
-        no_text.draw(); 
-        yes_text.draw(); 
+        no_im.draw(); 
+        yes_im.draw(); 
         for i in ticks:
             if len(grouped_belief[i])>0:
                 question.text = "Here is what other participants answered:\n\nNow, were these two patches aligned?";
@@ -503,11 +508,11 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
         
     if g_yes:
         global_feedback = visual.TextStim(win, text="The patches were aligned", color='white', height=0.1*win.size[1], pos=(0, -0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
-        image_global_feedback = visual.ImageStim(win=win,image="IMG/aligned.png", size=(0.15*win.size[1],0.25*win.size[1]) ,pos=(0,-0.2*win.size[1]));
+        image_global_feedback = visual.ImageStim(win=win,image="IMG/aligned.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,-0.25*win.size[1]));
 
     else:
         global_feedback = visual.TextStim(win, text="The patches weren't aligned", color='white', height=0.1*win.size[1], pos=(0, -0.25*win.size[1]),wrapWidth=win.size[0]*0.8);
-        image_global_feedback = visual.ImageStim(win=win,image="IMG/not_aligned.png", size=(0.15*win.size[1],0.25*win.size[1]) ,pos=(0,-0.2*win.size[1]));
+        image_global_feedback = visual.ImageStim(win=win,image="IMG/not_aligned.png", size=(0.25*win.size[1],0.25*win.size[1]) ,pos=(0,-0.25*win.size[1]));
 #    personal_feedback.draw();
 #    global_feedback.draw();
     image_feedback.draw();
