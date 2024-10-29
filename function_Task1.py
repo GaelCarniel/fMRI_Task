@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from psychopy import visual, event, core, data
+from psychopy import visual, event, core, data, gui, logging
 import collections #Manage dictionnaries easier
 from PIL import Image #Apply filter on images
 
@@ -20,6 +20,7 @@ def init(win, ticks=[0,1,2,3]):
         
     ### Read inputs
     game_schedule = pd.read_csv("Input/Game_Schedule.csv");
+    game_schedule_training = pd.read_csv("Input/Game_Schedule_Training.csv");
 
     with open('Input/reference.json', 'r') as file:
         json_string = file.read();
@@ -37,9 +38,12 @@ def init(win, ticks=[0,1,2,3]):
     s = [0,1];
     np.random.shuffle(s); #Select which one of the set will be bis #Select which one of the set will be bis
 
-    dictionary = {"slider":slider,"game":game_schedule,"ref":refs[s[0]],"ref_bis":refs[s[1]],"intruders":ref_table_intruder}; 
-    return dictionary
+    # Optional: Wait a few seconds to see the print output, then close
+    core.wait(2)
 
+
+    dictionary = {"slider":slider,"game":game_schedule,"ref":refs[s[0]],"ref_bis":refs[s[1]],"intruders":ref_table_intruder,"game_training":game_schedule_training}; 
+    return dictionary
 
 def gabor_task(win,angles,tstim,tvoid,slider,clock,max_resp_time=5,sf = 0.05,size=600,contrast=1.0):
     '''Gabor task with predefined parameters'''
@@ -535,6 +539,8 @@ def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,t
     indexes = np.arange(0,len(player_list));
     np.random.shuffle(indexes);
     key_pressed=[];acc=[];rt=[];intruder_appeared = False;
+    shown_p = [];
+    shown_avatar = [];
     for i in indexes:
         start = clock.getTime()
         if intruder_appeared:
@@ -545,23 +551,29 @@ def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,t
         if dice < intruder_p:
             intruder = np.random.choice(list(ref_intruders.values()));
             if training:
-                img_colour = Image.open(f"IMG/{intruder}")
+                img_colour = Image.open(f"IMG/{intruder}");
                 img_grey = img_colour.convert('L')
-                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0),name='Intruder');
+                image_path = f"IMG/{intruder}";
             else:
-                avatar = visual.ImageStim(win=win,image=f"IMG/{intruder}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+                avatar = visual.ImageStim(win=win,image=f"IMG/{intruder}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0),name='Intruder'); 
+                image_path = avatar.image;
             intruder_appeared = True;
         else:
             player = player_list[i];
             if training:
                 img_colour = Image.open(f"IMG/{ref_table[player]}")
                 img_grey = img_colour.convert('L')
-                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+                avatar = visual.ImageStim(win=win,image=img_grey, size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0),name=player); 
+                image_path = f"IMG/{ref_table[player]}";
 
             else:
-                avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0)); 
+                avatar = visual.ImageStim(win=win,image=f"IMG/{ref_table[player]}", size=(0.35*win.size[1],0.35*win.size[1]) ,pos=(0,0),name=player); 
+                image_path = avatar.image;
         avatar.draw();
         win.flip();
+        shown_avatar.append(image_path);
+        shown_p.append(avatar.name);
         keys = event.waitKeys(maxWait=1,keyList=['escape','a','z','e','r']);
         if keys is not None:
             key_pressed.append(keys);
@@ -579,6 +591,8 @@ def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,t
                     acc.append(player in sampled); #True would be if player has been sampled
                 elif 'a' in keys:
                     acc.append(player not in sampled); #True would be if player has not been sampled
+                elif 'z' in keys or 'e' in keys:
+                     acc.append('False_detection');
             win.flip();
             core.wait(.1);
         else:
@@ -607,12 +621,13 @@ def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,t
 
 
     #Mark the end of a round
-    next_round = visual.TextStim(win, text="Next round",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
-    next_round.draw();
+#    next_round = visual.TextStim(win, text="Next round",color="white", height=.08*win.size[1],wrapWidth=.8*win.size[0],pos=(0, 0));
+#    next_round.draw();
+    fixation_cross(win)
     win.flip()
     core.wait(transition_time);
 
-    return acc, rt
+    return acc, rt, shown_p, shown_avatar
 
 
 def fixation_cross(win):
@@ -711,7 +726,7 @@ def start_screen(win):
     text2.draw()
     win.flip()
 
-    keys = event.waitKeys(keyList=['space', 'escape'])
+    keys = event.waitKeys()
 
     return keys
 
