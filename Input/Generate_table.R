@@ -1,16 +1,50 @@
 rm(list=ls())
 
-time = 10 #Has to be even 
+time = 100 #Has to be even 
 
-gen_gamestate <- function(time,seed=12345){
+
+halton_sequence_gen = function(i,b){#Non random
+  #Generate Halton sequence of base b
+  r=0;f=1
+  while (i>0){
+    f = f/b
+    r = r +f*(i%%b)
+    i = i%/%b
+  }
+  return(r)
+}
+
+halton_ngen = function(ngen,b,width=1,height=1){
+  a=numeric(ngen)
+  for (i in 1:ngen){
+    a[i]=halton_sequence_gen(i,b)
+  }
+  return(cbind(a*width,((1:ngen)/ngen)*height))
+}
+
+gen_gamestate <- function(time,seed=12345,display_profiles=T){
   set.seed(seed)
   true_state = sample(rep(0:1,time/2),time) #Shuffling without replacing so half/half
-  slider_ticks = 0:3 #Be careful if you change this you have to change a lot of things sorry but this is not modulable
-  competence = seq(1/6,1,1/6) #Competence of the six players
+  slider_ticks = 0:3 #Be careful if you change this you have to change a lot of things this is not modulable
   
-  trustfullness = sample(competence) 
-  # plot(competence,trustfullness,main="This shouldn't be correlated")
+  #Generating profiles
+  coord = halton_ngen(6,3,0.7,1)
+  coord[,1] = coord[,1]+0.25
+  if (display_profiles){
+    plot(coord,xlim=c(0,1),ylim=c(0,1),ylab="Trustfullness",xlab="Competence",main="Bots' Profile")
+    # abline(h=c(0.2,0.8),col='grey')
+    # abline(v=c(0.25,0.95),col='grey')
+    abline(v =c(min(coord[,1]),max(coord[,1])),lty=3,col='grey')
+    abline(h =c(min(coord[,2]),max(coord[,2])),lty=3,col='grey')
+    
+  }
+  # Old
+  # competence = seq(1/6,1,1/6) #Competence of the six players
+  # trustfullness = sample(competence) 
   
+  competence = coord[,1]
+  trustfullness = coord[,2]
+
   mat = matrix(NA,time,6)
   mat_simple = matrix(NA,time,6)
   for (i in 1:time){
@@ -54,5 +88,5 @@ tab = gen_gamestate(time)
 write.csv(tab,"Game_Schedule.csv",row.names = F)
 
 #Training set
-tab = gen_gamestate(time,seed = 987654321)
+tab = gen_gamestate(time,seed = 9872)
 write.csv(tab,"Game_Schedule_Training.csv",row.names = F)

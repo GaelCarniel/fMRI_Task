@@ -83,3 +83,12 @@ select_file(return_data=F)
 
 select_log(return_data=F)
 
+
+# Accuracys
+tab = select_file(display=F)
+
+mean(tab$Gabor_Acc)
+
+tab$Updated_belief
+tab$Belief_alone
+tab$Sampled

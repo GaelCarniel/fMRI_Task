@@ -3,11 +3,12 @@ title: ""
 author: ""
 date: ""
 output: pdf_document
-css: style.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+
 ```
 
 # **Mission Briefing: Quantum Alignment Task**
@@ -55,7 +56,7 @@ As you progress in your alignment duties, select trials will be randomly chosen 
     -   Consulting crew members can be helpful, but it comes with a small **resource cost** of **5 credits per crew member**.
     -   Use crew consultations wisely to balance accuracy and reward.
 3.  **Intruder detection**
-    - Be careful **intruders** are among your ship if you **fail to detect them** you could lose up to **20 credits**.
+    -   Be careful **intruders** are among your ship if you **fail to detect them** you could lose up to **20 credits**.
 
 ### **Reward Summary**
 

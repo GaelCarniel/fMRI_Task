@@ -1,10 +1,10 @@
 from  function_Task1 import *
 
 ##Inputs
-g_delta = 10; #Initial delta (perception task)
+g_delta = 8; #Initial delta (perception task)
 training_delta = 15; #Constant delta only use in training
-n_task = 20; #Duration of the task should be longuer than the generated stim
-n_training_set = 3; #Number of training sets
+n_task = 40; #Duration of the task should be longuer than the generated stim
+n_training_set = 5; #Number of training sets
 
 #Note 7 trial 3 min minimum
 
@@ -86,7 +86,7 @@ while t_trial<n_training_set and dialog.OK:
     print(f"Belief updated: {updt}");
     
     #Feedback
-    feedback(win,updt,angles);
+    right_updt = feedback(win,updt,angles);
 
     fixation_cross(win);
     core.wait(2);
@@ -97,7 +97,7 @@ while t_trial<n_training_set and dialog.OK:
     print(f"accuracy:{acc}\nrt{rt}");
 
     #Save
-    data_to_save.append(['Training',t_trial,training_delta,angles,gabor_response,g_rt,right,updt,acc,rt,replay_order,replay_images,sampled]);
+    data_to_save.append(['Training',t_trial,training_delta,angles,gabor_response,g_rt,right,updt,right_updt,acc,rt,replay_order,replay_images,sampled]);
 
     logging.info(f'Training trial {t_trial}: begin, time: {clock.getTime()}');
     t_trial+=1;
@@ -155,7 +155,7 @@ while trial < time and dialog.OK:
 
 
     #Feedback
-    feedback(win,updt,angles);
+    right_updt = feedback(win,updt,angles);
     
     fixation_cross(win);
     core.wait(2);
@@ -166,8 +166,14 @@ while trial < time and dialog.OK:
     print(f"accuracy:{acc}\nrt{rt}");
 
     #Save
-    data_to_save.append(['Experiment',trial,g_delta,angles,gabor_response,g_rt,right,updt,acc,rt,replay_order,replay_images,sampled]);
+    data_to_save.append(['Experiment',trial,g_delta,angles,gabor_response,g_rt,right,updt,right_updt,acc,rt,replay_order,replay_images,sampled]);
     g_delta = ng_delta;
+
+    if trial == 20:
+        logging.info(f"Pause start");
+        pause(win);
+        logging.info(f"Pause end")
+
 
     trial += 1;
     print(f"\nTrial {trial}");
@@ -175,7 +181,7 @@ while trial < time and dialog.OK:
 logging.info(f'Trial {trial}: end, time: {clock.getTime()}');
 #Create csv
 abs_time=core.getAbsTime();
-save_df = pd.DataFrame(data_to_save,columns=["Phase", "Trial","Delta","Gabor_Angles","Belief_alone","Gabor_RT","Gabor_Acc","Updated_belief","Replay_Acc","Replay_RT","Replay_Order","Replay_Images","Sampled"]);
+save_df = pd.DataFrame(data_to_save,columns=["Phase", "Trial","Delta","Gabor_Angles","Belief_alone","Gabor_RT","Gabor_Acc","Updated_belief","Gabor_Acc_Updated","Replay_Acc","Replay_RT","Replay_Order","Replay_Images","Sampled"]);
 save_df.to_csv(f"Output/{abs_time}_{pat_id}.csv");#Adding the time to make sure it is unique
 
 finish_screen(win);

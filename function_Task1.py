@@ -103,7 +103,7 @@ def gabor_task(win,angles,tstim,tvoid,slider,clock,max_resp_time=5,sf = 0.05,siz
     stop = clock.getTime();
 
     if 'escape' in keys:
-        return 'escape'
+        return 'escape', stop-start
     elif 'a' in keys:
         return 0, stop-start
     elif 'z' in keys:
@@ -524,7 +524,7 @@ def feedback(win,updt, angles, time = 3, ticks = [0,1,2,3]):
     win.flip();
     core.wait(time);
 
-    return 0
+    return right
 
 
 def quick_replay(win,sampled,ref_table,ref_intruders,clock,transition_time=1.8,training = False,intruder_p = 1/18):
@@ -740,6 +740,22 @@ def write_text(win, text, display_time=1):
     win.flip()
     core.wait(display_time);
 
+
+def pause(win):
+    """
+    Display the pause panel
+    """
+
+    text = visual.TextStim(win, text="You can take a small break", color='white', height=0.13*win.size[1], pos=(0, 0.2*win.size[1]),wrapWidth=win.size[0]*0.95)
+    text2 = visual.TextStim(win, text="Press any key to resume", color='white',height=0.09*win.size[1], pos=(0, -0.2*win.size[1]),wrapWidth=win.size[0]*0.95)
+    text.draw()
+    text2.draw()
+
+
+    win.flip()
+    
+    event.waitKeys()
+    return 0
 
 
 def finish_screen(win):
