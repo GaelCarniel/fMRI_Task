@@ -62,6 +62,7 @@ def gabor_task(win,angles,tstim,tvoid,slider,clock,max_resp_time=5,sf = 0.05,siz
         sf=sf,              # spatial frequency
         ori=angles[0],               # orientation in degrees
         size=size,             # size of the Gabor patch
+        pos = (win.size[1]*0.05*np.random.uniform(0,1),win.size[1]*0.05*np.random.uniform(0,1)),
         contrast=contrast);         # contrast of the Gabor patch
 
     #Display gabor patches
@@ -72,6 +73,7 @@ def gabor_task(win,angles,tstim,tvoid,slider,clock,max_resp_time=5,sf = 0.05,siz
     win.flip();
     core.wait(tvoid);
     
+    gabor.pos = win.size[1]*0.05*np.random.uniform(0,1),win.size[1]*0.05*np.random.uniform(0,1);
     gabor.ori=angles[1];
     gabor.draw();
     win.flip();
