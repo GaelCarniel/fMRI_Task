@@ -167,7 +167,7 @@ def gabor_angles_alt_version(true_state,g_delta,len_slider,sd=2):
         return [angle1,angle2],delta
 
 
-def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Low","High"],training = False):
+def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Low","High"],training = False,sample_all=False):
     '''Display the panel for sampling selection (no randomisation here)'''
     player_list = list(ref_table.keys());
     
@@ -235,7 +235,10 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
 #        text_nochoice.draw();
         win.flip();
 
-        keys = event.waitKeys(keyList=['escape','a','z','e','r']);
+        if sample_all:
+            keys = event.waitKeys(keyList=['escape','a','r']);
+        else:
+            keys = event.waitKeys(keyList=['escape','a','z','e','r']);
         
         if 'escape' in keys:
             return 'escape'
@@ -294,7 +297,7 @@ def sampling_player(win,pl,pr,table,ref_table,trial,conf_label=["High","Low","Lo
             return "stop"
 
  
-def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","Low","Low","High"],training = False):
+def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","Low","Low","High"],training = False,sample_all = False):
     '''Select the players to show and call the function to plot them, return the list of sampled players
     Be careful this function have to be adapted MANUALLY to the confidence array [0,1,2,3]'''
     ###Version 1 sorted by confidence
@@ -303,14 +306,17 @@ def sampling_players(win,table,ref_table,trial,maxSample=3,conf_label=["High","L
 
     high_conf = np.where((arr==0) | (arr==3));
     low_conf = np.where((arr==1) | (arr==2));
-    order = np.concatenate((np.array(high_conf).flat,np.array(low_conf).flat));#Flat ensure it is one dimensional thank you python for being so weird
+    order = np.concatenate((np.array(high_conf).flat,np.array(low_conf).flat));#Flat ensure it is one dimensional 
+    
+    if sample_all:
+        np.random.shuffle(order);
     
     leftright = [0,1]; #Who's gonna be left
     chosen = [];
     s = 0;
     while s<maxSample and len(order)>1:  #While we still can sample
         np.random.shuffle(leftright);
-        new_sampled =sampling_player(win,order[leftright[0]],order[leftright[1]],table,ref_table,trial,conf_label=conf_label,training=training); 
+        new_sampled =sampling_player(win,order[leftright[0]],order[leftright[1]],table,ref_table,trial,conf_label=conf_label,training=training,sample_all=sample_all); 
         chosen.append(new_sampled);
 
         if 'escape' in chosen:

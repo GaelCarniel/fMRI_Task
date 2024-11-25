@@ -3,8 +3,9 @@ from  function_Task1 import *
 ##Inputs
 g_delta = 8; #Initial delta (perception task)
 training_delta = 15; #Constant delta only use in training
-n_task = 40; #Duration of the task should be longuer than the generated stim
+n_task = 60; #Duration of the task should be longuer than the generated stim
 n_training_set = 5; #Number of training sets
+sample_all=True
 
 #Note 7 trial 3 min minimum
 
@@ -74,7 +75,7 @@ while t_trial<n_training_set and dialog.OK:
             right = check_gabor_response(gabor_response,global_obj["game_training"]["Stim"][t_trial]); #Check gabor response, will be used to update difficulty update the difficulty
 
     #Sampling phase
-    sampled = sampling_players(win,global_obj["game_training"],global_obj["ref_bis"],t_trial,training = True);
+    sampled = sampling_players(win,global_obj["game_training"],global_obj["ref_bis"],t_trial,training = True,sample_all=sample_all);
     if 'escape' in sampled:
         break
     print(sampled);
@@ -138,7 +139,7 @@ while trial < time and dialog.OK:
             print(f"Accuracy (one shot) {right}");
     
     #Sampling phase
-    sampled = sampling_players(win,global_obj["game"],global_obj["ref"],trial);
+    sampled = sampling_players(win,global_obj["game"],global_obj["ref"],trial,sample_all=sample_all);
     if 'escape' in sampled:
         break
     print(sampled);

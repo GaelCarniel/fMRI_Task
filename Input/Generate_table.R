@@ -25,6 +25,7 @@ halton_ngen = function(ngen,b,width=1,height=1){
 gen_gamestate <- function(time,seed=12345,display_profiles=T){
   set.seed(seed)
   true_state = sample(rep(0:1,time/2),time) #Shuffling without replacing so half/half
+  true_state = rev(true_state) # To have less True at the beginnig with this seed
   slider_ticks = 0:3 #Be careful if you change this you have to change a lot of things this is not modulable
   
   #Generating profiles
